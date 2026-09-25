@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blooldellow — Faça seu pedido</title>
+<style>
+:root{
+  --green:#3d4a32; --cream:#f6f1e9; --gold:#b8934f; --text:#2c2c2c;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;font-family:Georgia,'Times New Roman',serif;background:var(--cream);color:var(--text);min-height:100%}
+header{background:var(--green);color:var(--cream);padding:28px 20px 22px;text-align:center}
+header h1{margin:0;font-size:2.1rem;letter-spacing:2px}
+header p{margin:6px 0 0;color:var(--gold);font-style:italic;letter-spacing:1px}
+main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+.card{background:#fff;border:1px solid #e3dccb;border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.product-img{width:100%;height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;border:1px solid #e3dccb}
+label{display:block;font-weight:bold;color:var(--green);margin-bottom:6px;font-size:.95rem}
+select,input,textarea{width:100%;padding:10px;border:1px solid #cfc6ae;border-radius:8px;font-size:1rem;font-family:inherit;background:#fdfcf9;margin-bottom:14px}
+textarea{resize:vertical;min-height:60px}
+.check{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.check input{width:auto;margin:0}
+.check label{margin:0;font-weight:normal;color:var(--text)}
+.price-line{display:flex;justify-content:space-between;font-size:.9rem;color:#666;margin:-8px 0 12px}
+.total{background:var(--green);color:var(--cream);border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;font-size:1.2rem;margin-bottom:16px}
+.total b{color:var(--gold)}
+button{width:100%;background:#25D366;color:#fff;border:none;padding:15px;border-radius:10px;font-size:1.05rem;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+button:active{opacity:.85}
+.hint{font-size:.8rem;color:#888;text-align:center;margin-top:8px}
+footer{text-align:center;padding:16px;color:var(--green);font-size:.85rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>BLOOLDELLOW</h1>
+  <p>Afeto de luxo</p>
+</header>
+<main>
+  <form id="orderForm">
+    <div class="card">
+      <label for="produto">Escolha o produto</label>
+      <select id="produto" required></select>
+
+      <div id="imagemContainer"></div>
+
+      <label for="tamanho">Tamanho</label>
+      <select id="tamanho" required></select>
+      <div class="price-line" id="descricaoProduto"></div>
+
+      <label for="sabor">Sabor do bolo</label>
+      <select id="sabor" required></select>
+      <div class="price-line" id="saborAviso"></div>
+
+      <div class="check">
+        <input type="checkbox" id="card" />
+        <label for="card">Adicionar card de aniversário + 2 velas (+R$ 10,00)</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <label for="nome">Seu nome</label>
+      <input type="text" id="nome" required placeholder="Como podemos te chamar">
+
+      <label for="data">Data desejada para entrega/retirada</label>
+      <input type="text" id="data" placeholder="Ex: 20/10/2026">
+
+      <label for="obs">Observações (frase, desenho, detalhes)</label>
+      <textarea id="obs" placeholder="Conte pra gente os detalhes do seu pedido especial"></textarea>
+    </div>
+
+    <div class="total">
+      <span>Total estimado</span>
+      <b id="totalValor">R$ 0,00</b>
+    </div>
+
+    <button type="submit">📩 Enviar pedido pelo WhatsApp</button>
+    <p class="hint">Você será direcionado ao WhatsApp com seu pedido já preenchido</p>
+  </form>
+</main>
+<footer>🤍 Presentes com afeto, exclusivos como cada história</footer>
+
+<script>
+const WHATSAPP = "5551992201808";
+
+const produtos = [
+  {
+    nome: "Bolo Básico", 
+    img: "bolo_basico.jpeg", 
+    tam: [{l:"M - 18cm",p:55},{l:"G - 23cm",p:75}], 
+    desc: "Frase escrita, desenho básico, embalagem e acabamento"
+  },
+  {
+    nome: "Bolo Premium", 
+    img: "bolo_premium.jpeg", 
+    tam: [{l:"M",p:75},{l:"G",p:95}], 
+    desc: "Frase e desenhos mais retalhados, embalagem e acabamento linha premium"
+  },
+  {
+    nome: "Luxo Caixa de Madeira", 
+    img: "luxo_caixa_madeira.jpeg", 
+    tam: [{l:"M",p:120},{l:"G",p:140}], 
+    desc: "Frases e desenhos à vontade, caixa de madeira, laço personalizado com flores secas e trigo"
+  },
+  {
+    nome: "Box Llow (Luxo)", 
+    img: "box_llow.jpeg", 
+    tam: [{l:"G",p:350}], 
+    desc: "Caixa de madeira com flores, chocolates e mimos, laço personalizado"
+  },
+  {
+    nome: "Box Flores (Luxo)", 
+    img: "box_flores.jpeg", 
+    tam: [{l:"M",p:280}], 
+    desc: "Caixa de madeira com buquê de flores e mimos"
+  },
+  {
+    nome: "Box Café (Luxo)", 
+    img: "box_cafe.jpeg", 
+    tam: [{l:"M",p:260}], 
+    desc: "Caneca, coador de café inox, café gourmet, alfajor premium e flores secas"
+  },
+  {
+    nome: "Box Suco (Luxo)", 
+    img: "box_suco.jpeg", 
+    tam: [{l:"M",p:250}], 
+    desc: "Suco natural, alfajor premium e flores secas, em caixa de MDF"
+  }
+];
+
+const saboresBase = ["Cenoura","Chocolate","Café","Fubá","Laranja","Limão","Red Velvet","Milho"];
+const saboresEspeciais = ["Limão Siciliano com Mirtilo","Requeijão c/Goiabada","Prestígio","Amêndoas com Doce de Leite"];
+
+const $produto = document.getElementById('produto');
+const $imagemContainer = document.getElementById('imagemContainer');
+const $tamanho = document.getElementById('tamanho');
+const $sabor = document.getElementById('sabor');
+const $descricaoProduto = document.getElementById('descricaoProduto');
+const $saborAviso = document.getElementById('saborAviso');
+const $card = document.getElementById('card');
+const $totalValor = document.getElementById('totalValor');
+
+produtos.forEach((p,i)=>{
+  const opt = document.createElement('option');
+  opt.value = i; opt.textContent = p.nome;
+  $produto.appendChild(opt);
+});
+
+saboresBase.forEach(s=>{
+  const opt = document.createElement('option');
+  opt.value = s; opt.dataset.extra="0"; opt.textContent = s;
+  $sabor.appendChild(opt);
+});
+saboresEspeciais.forEach(s=>{
+  const opt = document.createElement('option');
+  opt.value = s; opt.dataset.extra="12"; opt.textContent = s + " (+R$12)";
+  $sabor.appendChild(opt);
+});
+
+function popularTamanhos(){
+  const p = produtos[$produto.value];$imagemContainer.innerHTML = `<img src="${p.img}" alt="${p.nome}" class="product-img">`;
+
+  $tamanho.innerHTML = "";
+  p.tam.forEach(t=>{
+    const opt = document.createElement('option');
+    opt.value = t.p; opt.textContent = `${t.l} — R$ ${t.p.toFixed(2).replace('.',',')}`;
+    $tamanho.appendChild(opt);
+  });
+  $descricaoProduto.textContent = p.desc;
+  calcularTotal();
+}
+
+function calcularTotal(){
+  const base = Number($tamanho.value) || 0;
+  const saborOpt = $sabor.options[$sabor.selectedIndex];
+  const extraSabor = saborOpt ? Number(saborOpt.dataset.extra) : 0;
+  const extraCard = $card.checked ? 10 : 0;
+  $saborAviso.textContent = extraSabor ? "Sabor especial: +R$ 12,00" : "";
+  const total = base + extraSabor + extraCard;
+  $totalValor.textContent = "R$ " + total.toFixed(2).replace('.',',');
+}
+
+$produto.addEventListener('change', popularTamanhos);$tamanho.addEventListener('change', calcularTotal);
+$sabor.addEventListener('change', calcularTotal);$card.addEventListener('change', calcularTotal);
+popularTamanhos();
+
+document.getElementById('orderForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const p = produtos[$produto.value];
+  const tamLabel = $tamanho.options[$tamanho.selectedIndex].textContent;
+  const sabor = $sabor.value;
+  const nome = document.getElementById('nome').value.trim();
+  const data = document.getElementById('data').value.trim();
+  const obs = document.getElementById('obs').value.trim();
+  const total = $totalValor.textContent;
+
+  if(!nome){ document.getElementById('nome').focus(); return; }
+
+  let msg = `Olá! Quero fazer um pedido 🤍\n\n`;
+  msg += `*Produto:* ${p.nome}\n`;
+  msg += `*Tamanho:* ${tamLabel}\n`;
+  msg += `*Sabor:* ${sabor}\n`;
+  msg += `*Card aniversário + 2 velas:* ${$card.checked ? "Sim (+R$10,00)" : "Não"}\n`;
+  if(data) msg += `*Data desejada:* ${data}\n`;
+  if(obs) msg += `*Observações:* ${obs}\n`;
+  msg += `*Total estimado:* ${total}\n\n`;
+  msg += `*Nome:* ${nome}`;
+
+  const url = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
+  const link = document.createElement('a');
+  link.href = url;
+  link.target = '_blank';
+  link.rel = 'noopener';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(function(){ window.location.href = url; }, 300);
+});
+</script>
+</body>
+</html>
